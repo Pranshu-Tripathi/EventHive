@@ -1,0 +1,19 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+manifests:
+  rawYaml:
+    - ./infrastructure/k8s/*
+build:
+  # local:
+  #   push: false
+  googleCloudBuild:
+    projectId: eventhive-dev
+  artifacts:
+    - image: us.gcr.io/eventhive-dev/authentication
+      context: authentication
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: .
