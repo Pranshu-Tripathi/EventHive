@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: authentication
-          image: pranshu72001/eventhive-authentication
+          image: us.gcr.io/eventhive-dev/authentication
 ---
 apiVersion: v1
 kind: Service

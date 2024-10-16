@@ -4,10 +4,12 @@ manifests:
   rawYaml:
     - ./infrastructure/k8s/*
 build:
-  local:
-    push: false
+  # local:
+  #   push: false
+  googleCloudBuild:
+    projectId: eventhive-dev
   artifacts:
-    - image: pranshu72001/eventhive-authentication
+    - image: us.gcr.io/eventhive-dev/authentication
       context: authentication
       docker:
         dockerfile: Dockerfile
