@@ -1,0 +1,17 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+manifests:
+  rawYaml:
+    - ./infrastructure/k8s/*
+build:
+  local:
+    push: false
+  artifacts:
+    - image: pranshu72001/eventhive-authentication
+      context: authentication
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: .
