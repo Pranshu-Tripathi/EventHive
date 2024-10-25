@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
-import { BadRequestError } from "../errors/bad-request-error";
-import { validateRequest } from "../middlewares/validate-request";
+import { validateRequest, BadRequestError } from "@eventhive/common";
 
 import jwt from "jsonwebtoken";
 
