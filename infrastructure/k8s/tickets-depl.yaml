@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: authentication-depl
+  name: tickets-depl
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: authentication
+      app: tickets
   template:
     metadata:
       labels:
-        app: authentication
+        app: tickets
     spec:
       containers:
-        - name: authentication
-          image: us.gcr.io/eventhive-dev/authentication
+        - name: tickets
+          image: us.gcr.io/eventhive-dev/tickets
           env:
             - name: MONGO_URI
-              value: "mongodb://authentication-mongo-srv:27017/authentication"
+              value: mongodb://tickets-mongo-srv:27017/tickets
             - name: JWT_KEY
               valueFrom:
                 secretKeyRef:
@@ -27,12 +27,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: authentication-srv
+  name: tickets-srv
 spec:
   selector:
-    app: authentication
+    app: tickets
   ports:
-    - name: authentication
+    - name: tickets
       protocol: TCP
       port: 3000
       targetPort: 3000
