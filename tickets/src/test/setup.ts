@@ -4,6 +4,8 @@ import { app } from "../app";
 import request from "supertest";
 import jwt from "jsonwebtoken";
 
+jest.mock("../nats-wrapper");
+
 let mongo: MongoMemoryServer;
 
 declare global {
