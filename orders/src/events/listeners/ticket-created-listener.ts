@@ -3,7 +3,7 @@ import { Subjects, TicketCreatedEvent, Listener } from "@eventhive/common";
 import { Ticket } from "../../models/ticket";
 import { queueGroupName } from "./queue-group-name";
 
-export class TicketCreatedListner extends Listener<TicketCreatedEvent> {
+export class TicketCreatedListener extends Listener<TicketCreatedEvent> {
   readonly subject = Subjects.TicketCreated;
   queueGroupName = queueGroupName;
   async onMessage(data: TicketCreatedEvent["data"], msg: Message) {
