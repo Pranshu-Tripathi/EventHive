@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import { app } from "./app";
 import { natsWrapper } from "./nats-wrapper";
-import { OrderCreatedListener } from "./events/listeners/order-created-listener";
-import { OrderCancelledListener } from "./events/listeners/order-cancelled-listener";
+import { TicketCreatedListener } from "./events/listeners/ticket-created-listener";
+import { TicketUpdatedListener } from "./events/listeners/ticket-updated-listener";
 
 const start = async () => {
   if (!process.env.JWT_KEY) {
@@ -38,18 +38,18 @@ const start = async () => {
     process.on("SIGINT", () => natsWrapper.client.close());
     process.on("SIGTERM", () => natsWrapper.client.close());
 
-    new OrderCreatedListener(natsWrapper.client).listen();
-    new OrderCancelledListener(natsWrapper.client).listen();
+    new TicketCreatedListener(natsWrapper.client).listen();
+    new TicketUpdatedListener(natsWrapper.client).listen();
 
     await mongoose.connect(process.env.MONGO_URI);
-    console.log("Tickets Service: Connected to MongoDB");
+    console.log("Order Service: Connected to MongoDB");
   } catch (err) {
     console.error(err);
   }
 };
 
 app.listen(3000, () => {
-  console.log("TICKETS SERVICE: PORT:3000");
+  console.log("ORDERS SERVICE: PORT:3000");
 });
 
 start();
