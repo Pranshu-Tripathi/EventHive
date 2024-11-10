@@ -11,6 +11,14 @@ const Header = ({ currentUser }) => {
       href: "/auth/signin",
     },
     currentUser && {
+      label: "Sell Tickets",
+      href: "/tickets/new",
+    },
+    currentUser && {
+      label: "My Orders",
+      href: "/orders",
+    },
+    currentUser && {
       label: "Sign Out",
       href: "/auth/signout",
     },
@@ -28,7 +36,7 @@ const Header = ({ currentUser }) => {
 
   return (
     <nav className="navbar navbar-light bg-light">
-      <Link className="navbar-brand" href="/">
+      <Link className="navbar-brand" href="/" style={{ marginLeft: 10 }}>
         EventHive
       </Link>
 
