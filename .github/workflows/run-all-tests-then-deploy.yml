@@ -11,15 +11,25 @@ on:
       - completed
 
 jobs:
-  trigger-deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success'  && github.ref == 'refs/heads/main' }}
+  check-all-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Check if all test workflows passed
+        id: check-tests
+        run: |
+          echo "Test workflows summary:"
+          echo "tests-auth: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.workflow == 'tests-auth' }}"
+          echo "tests-orders: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.workflow == 'tests-orders' }}"
+          echo "tests-payments: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.workflow == 'tests-payments' }}"
+          echo "tests-tickets: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.workflow == 'tests-tickets' }}"
+
       - name: Trigger Deployment
+        if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.workflow == 'tests-auth' && github.event.workflow_run.workflow == 'tests-orders' && github.event.workflow_run.workflow == 'tests-payments' && github.event.workflow_run.workflow == 'tests-tickets' }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           echo "All tests passed successfully. Proceeding to deployment..."
-          # Trigger the deployment workflow (could be via an API or by dispatching an event)
-          gh workflow run deploy-on-gke.yml --ref main
+          gh workflow run deployment-on-gke.yml --ref main
