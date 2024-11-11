@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - "tickets/**"
+  push:
+    branches:
+      - main
 
 jobs:
   build:
