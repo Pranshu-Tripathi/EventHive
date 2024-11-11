@@ -7,15 +7,33 @@ on:
       - completed
 
 jobs:
+  wait_for_tests_to_complete:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for tests to complete
+        id: check_test_workflow
+        run: |
+          echo "Checking for successful completion of all workflows..."
+
+          # Define a list of workflow names
+          WORKFLOWS=("tests-auth" "tests-orders" "tests-payments" "tests-tickets")
+          SUCCESS=true
+
+          # Loop through each workflow name and check its result
+          for workflow in "${WORKFLOWS[@]}"; do
+              if [[ "${{ github.event.workflow_run.workflow }}" == "$workflow" && "${{ github.event.workflow_run.conclusion }}" != "success" ]]; then
+              echo "Workflow $workflow did not succeed."
+              SUCCESS=false
+              fi
+          done
+
+          if [[ "$SUCCESS" == "false" ]]; then
+              exit 1
+          fi
+
   deploy:
-    if: |
-      ${{ 
-      github.event.workflow_run.conclusion == 'success' &&
-      (github.event.workflow_run.workflow == 'tests-auth' ||
-      github.event.workflow_run.workflow == 'tests-orders' ||
-      github.event.workflow_run.workflow == 'tests-payments' ||
-      github.event.workflow_run.workflow == 'tests-tickets') &&
-      github.ref == 'refs/heads/main' }}
+    needs: wait_for_tests_to_complete
+    if: ${{ needs.wait_for_tests_to_complete.result == 'success' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -46,4 +64,4 @@ jobs:
           sudo install skaffold /usr/local/bin/
 
       - name: Deploy to GKE using Skaffold
-        run: skaffold run -f skaffold-gke.yaml --default-repo us.gcr.io/eventhive-dev
+        run: skaffold run -f skaffold.yaml --default-repo us.gcr.io/eventhive-dev
