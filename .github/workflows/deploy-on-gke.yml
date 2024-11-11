@@ -9,12 +9,13 @@ on:
 jobs:
   deploy:
     if: |
-      ${{ github.event.workflow_run.conclusion == 'success'
-      && github.event.workflow_run.workflow == 'tests-auth' 
-      &&  github.event.workflow_run.workflow == 'tests-orders' 
-      && github.event.workflow_run.workflow == 'tests-payments' 
-      && github.event.workflow_run.workflow == 'tests-tickets' 
-      && github.ref == 'refs/heads/main' }}
+      ${{ 
+      github.event.workflow_run.conclusion == 'success' &&
+      (github.event.workflow_run.workflow == 'tests-auth' ||
+      github.event.workflow_run.workflow == 'tests-orders' ||
+      github.event.workflow_run.workflow == 'tests-payments' ||
+      github.event.workflow_run.workflow == 'tests-tickets') &&
+      github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,7 +26,7 @@ jobs:
           PASSPHRASE: ${{ secrets.GKE_SERVICE_ACCOUNT_PASSPHRASE }}
         run: |
           gpg --quiet --batch --yes --decrypt --passphrase="$PASSPHRASE" \
-          --output /tmp/gcp-key.json ./your-service-account-key.json.gpg
+          --output /tmp/gcp-key.json ./eventhive-gke-service-account-key.json.gpg
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
