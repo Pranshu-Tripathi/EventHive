@@ -1,14 +1,43 @@
 name: deployment-on-gke
 
 on:
-  workflow_dispatch:
-    inputs:
-      trigger-deployment:
-        description: "Trigger GKE Deployment"
-        required: true
+  push:
+    branches:
+      - main
 
 jobs:
+  test-deployment-auth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: cd authentication && npm install && npm run test:ci
+
+  test-deployment-orders:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: cd orders && npm install && npm run test:ci
+
+  test-deployment-tickets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: cd tickets && npm install && npm run test:ci
+
+  test-deployment-payments:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: cd payments && npm install && npm run test:ci
+
   deploy:
+    needs:
+      [
+        test-deployment-auth,
+        test-deployment-orders,
+        test-deployment-tickets,
+        test-deployment-payments,
+      ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

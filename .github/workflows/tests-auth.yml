@@ -4,9 +4,6 @@ on:
   pull_request:
     paths:
       - "authentication/**"
-  push:
-    branches:
-      - main
 
 jobs:
   build:
