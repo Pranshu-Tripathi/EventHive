@@ -123,3 +123,24 @@ There are many ways to autherize any user into the application. All the approach
   - User
     - email id
     - password
+
+## Common NPM Module
+
+This is a shared common library published on npmjs as a [package](https://www.npmjs.com/package/@eventhive/common). All the serices basically install this package and will use the reusable code that it holds.
+
+- Note: written in `Typescript`, published as `JS` using `del-cli`.
+
+- Tech Stack: `express`, `TypeScript`, `node-nats-streaming`, `JWT`, `cookie-session`
+
+It holds majorly the following:
+
+- Custom Errors: So that each service remains consistent with throwing errors and corresponding messages.
+
+- Events:
+
+  - All different types of events and their corresponding events to publish and listen to them.
+  - Template Base Publisher and Listener to reduce boiler plate setup for all the services.
+
+- Middlewares: A consistent middleware to re-ue in different services to maintain consistency for the responses, so that the client code is not cluttered to handle different types of responses.
+
+There is a small assumption for event plublisher and listener interface is that the services need to support typescript. For Cross Platform support one can explore JSON Schema, Protobuf, Apache Avro. These interfaces were added in first place to ensure that services always publish valid data object for a particular type of event. And the Listeners take into account for that types of data objects in recieved messages.
