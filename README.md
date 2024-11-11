@@ -234,3 +234,27 @@ This service is the responsible service that performs the CRUD operations on Ord
     - Ticket Updated ( Updates its replica database ).
     - Expiration Complete ( If expired then order set to cancelled and Order Cancelled event triggered ).
     - Payment Created ( Updates order status to complete ).
+
+## Expiration Service
+
+This service has a sole responsibility to notify if a created order has expired. Again their are many possible implementations for expiring an event. Some options are as below:
+
+- setTimeOut: Publish a event on timeout. Problem here is that timer resets when this service restarts
+- Rely on NATs: NATs will keep on publishing a message until not acknowledged. So acknowledge event on expiration. Not optimal as too many unnecessary events will clutter the event bus.
+- Message Broker: Implement a service that publishes a event on a scheduled time. This is optimal and hence is the expiration service in our use case.
+
+- Tech Stack: `BullJS`, `Redis`, `Typescript`, `node-nats-client`
+
+- Deployment
+  - A pod running the expiration service (a expiration queue, which is a message broker)
+  - A pod running the redis database to store the jobs
+
+We used BullJS that underly schedules Jobs in a redis cache database and processes the events on the scheduled delays. This way even if the service restarts we still can retrive the jobs from the database and continue to publish events on expiration of orders.
+
+This is a worker service that has a cache database and only emits a expiration event for different orders.
+
+- Events
+  - Publish:
+    - Expiration Complete : ( Order id that has expired )
+  - Listen:
+    - Order Created : ( Schedule a job with 1 min delay and order id as payload.)
