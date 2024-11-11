@@ -144,3 +144,35 @@ It holds majorly the following:
 - Middlewares: A consistent middleware to re-ue in different services to maintain consistency for the responses, so that the client code is not cluttered to handle different types of responses.
 
 There is a small assumption for event plublisher and listener interface is that the services need to support typescript. For Cross Platform support one can explore JSON Schema, Protobuf, Apache Avro. These interfaces were added in first place to ensure that services always publish valid data object for a particular type of event. And the Listeners take into account for that types of data objects in recieved messages.
+
+## Tickets Service
+
+This service is the responsible service that performs the CRUD operations on Tickets Model.
+
+- Tech Stack: `Common`, `mongoose`, `TypeScript`, `Express`, `node-nats-streaming`, `mongoose-update-if-current`
+
+- Testing: `JEST`, `supertest`, `mongoose-in-memory-server`
+
+- Routes
+
+  - Get all tickets: Returns all the tickets by all the users that are not associated to a valid order. ( Avoid concurrent purchase).
+  - Get a ticket details: Returns Ticket model for given id.
+  - Create a new ticket.
+  - Update a existing ticket: Allowed only to owner of ticket.
+
+- Models
+
+  - Tickets
+    - title
+    - price
+    - userId
+    - version
+    - orderId
+
+- Events:
+  - Publish
+    - Ticket Created ( Ticket details sent to listeners )
+    - Ticket Updated ( Ticket details sent to listeners )
+  - Listen
+    - Order Created ( Ticket associated with order Id )
+    - Order Cancelled ( Ticket freed from the order Id )
