@@ -19,7 +19,7 @@ jobs:
           PASSPHRASE: ${{ secrets.GKE_SERVICE_ACCOUNT_PASSPHRASE}}
         run: |
           gpg --quiet --batch --yes --decrypt --passphrase="$PASSPHRASE" \
-          --output /tmp/gcp-key.json ./your-service-account-key.json.gpg
+          --output /tmp/gcp-key.json ./eventhive-gke-service-account-key.json.gpg
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
