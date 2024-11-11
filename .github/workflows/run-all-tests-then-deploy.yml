@@ -12,22 +12,31 @@ on:
 
 jobs:
   check-all-tests:
+    if: ${{github.ref == 'refs/heads/main'}}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Check if all test workflows passed
-        id: check-tests
+      - name: Set up outputs for test status
+        id: test-status
+        run: |
+          # Get the conclusion of each workflow
+          echo "tests-auth=${{ github.event.workflow_run.conclusion }}" >> $GITHUB_ENV
+          echo "tests-orders=${{ github.event.workflow_run.conclusion }}" >> $GITHUB_ENV
+          echo "tests-payments=${{ github.event.workflow_run.conclusion }}" >> $GITHUB_ENV
+          echo "tests-tickets=${{ github.event.workflow_run.conclusion }}" >> $GITHUB_ENV
+
+      - name: Log the test workflow conclusions
         run: |
           echo "Test workflows summary:"
-          echo "tests-auth: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.workflow == 'tests-auth' }}"
-          echo "tests-orders: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.workflow == 'tests-orders' }}"
-          echo "tests-payments: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.workflow == 'tests-payments' }}"
-          echo "tests-tickets: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.workflow == 'tests-tickets' }}"
+          echo "tests-auth: ${{ env.tests-auth }}"
+          echo "tests-orders: ${{ env.tests-orders }}"
+          echo "tests-payments: ${{ env.tests-payments }}"
+          echo "tests-tickets: ${{ env.tests-tickets }}"
 
       - name: Trigger Deployment
-        if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.workflow == 'tests-auth' && github.event.workflow_run.workflow == 'tests-orders' && github.event.workflow_run.workflow == 'tests-payments' && github.event.workflow_run.workflow == 'tests-tickets' }}
+        if: ${{ env.tests-auth == 'success' && env.tests-orders == 'success' && env.tests-payments == 'success' && env.tests-tickets == 'success'}}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
