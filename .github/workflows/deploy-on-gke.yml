@@ -1,39 +1,14 @@
 name: deployment-on-gke
 
 on:
-  workflow_run:
-    workflows: ["tests-auth", "tests-orders", "tests-payments", "tests-tickets"]
-    types:
-      - completed
+  workflow_dispatch:
+    inputs:
+      trigger-deployment:
+        description: "Trigger GKE Deployment"
+        required: true
 
 jobs:
-  wait_for_tests_to_complete:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Wait for tests to complete
-        id: check_test_workflow
-        run: |
-          echo "Checking for successful completion of all workflows..."
-
-          # Define a list of workflow names
-          WORKFLOWS=("tests-auth" "tests-orders" "tests-payments" "tests-tickets")
-          SUCCESS=true
-
-          # Loop through each workflow name and check its result
-          for workflow in "${WORKFLOWS[@]}"; do
-              if [[ "${{ github.event.workflow_run.workflow }}" == "$workflow" && "${{ github.event.workflow_run.conclusion }}" != "success" ]]; then
-              echo "Workflow $workflow did not succeed."
-              SUCCESS=false
-              fi
-          done
-
-          if [[ "$SUCCESS" == "false" ]]; then
-              exit 1
-          fi
-
   deploy:
-    needs: wait_for_tests_to_complete
-    if: ${{ needs.wait_for_tests_to_complete.result == 'success' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -51,6 +26,10 @@ jobs:
         with:
           service_account_key: /tmp/gcp-key.json
           project_id: eventhive-dev
+
+      - name: Install GKE gcloud auth plugin
+        run: |
+          gcloud components install gke-gcloud-auth-plugin
 
       - name: Authenticate with Google Cloud using service account
         run: |

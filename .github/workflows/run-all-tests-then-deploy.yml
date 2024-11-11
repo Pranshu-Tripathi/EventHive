@@ -1,0 +1,25 @@
+name: run_all_tests
+
+on:
+  workflow_run:
+    workflows:
+      - "tests-auth"
+      - "tests-orders"
+      - "tests-payments"
+      - "tests-tickets"
+    types:
+      - completed
+
+jobs:
+  trigger-deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success'  && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Trigger Deployment
+        run: |
+          echo "All tests passed successfully. Proceeding to deployment..."
+          # Trigger the deployment workflow (could be via an API or by dispatching an event)
+          gh workflow run deploy-on-gke.yml --ref main
