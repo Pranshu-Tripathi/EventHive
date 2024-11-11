@@ -298,3 +298,15 @@ This is a bit complicated flow. Our SSR Client will first use a checkout library
   - Listen:
     - Order Created ( updates replica model )
     - Order Cancelled ( updates replica model )
+
+# SSR Client Service
+
+This is the server side renderer client that combines all the informations of incoming request from actual client, and returns a single compiled js and html code. SSR are generally used for SEO and reducing client side TLS latency.
+
+## Build Client
+
+It has a build-client method that actually is used to understand which client is making this request. The client side rendered app ( in a browser ) / or our server side client that is combining all the changes and sending it to the customer. This function defines the base url where we need to make request to get the data. Since the browser side client comes via the GKE load balancer it is automatically directed to the ingress controller path. But the server side rendered client needs to know about this GKE.
+
+- Tech Stack: `Next.js`, `React`, `react-stripe-checkout`, `axios`
+
+- Stripe Checkout : It is bascially used with publishable key to retreive a token for this transactions. Then it sends this token to payment service that actually processes this transcation via stripe client.
