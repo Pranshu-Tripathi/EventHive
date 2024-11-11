@@ -8,7 +8,13 @@ on:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' }}
+    if: |
+      ${{ github.event.workflow_run.conclusion == 'success'
+      && github.event.workflow_run.workflow == 'tests-auth' 
+      &&  github.event.workflow_run.workflow == 'tests-orders' 
+      && github.event.workflow_run.workflow == 'tests-payments' 
+      && github.event.workflow_run.workflow == 'tests-tickets' 
+      && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,10 +22,10 @@ jobs:
 
       - name: Decrypt Google Cloud Service Account Key
         env:
-          PASSPHRASE: ${{ secrets.GKE_SERVICE_ACCOUNT_PASSPHRASE}}
+          PASSPHRASE: ${{ secrets.GKE_SERVICE_ACCOUNT_PASSPHRASE }}
         run: |
           gpg --quiet --batch --yes --decrypt --passphrase="$PASSPHRASE" \
-          --output /tmp/gcp-key.json ./eventhive-gke-service-account-key.json.gpg
+          --output /tmp/gcp-key.json ./your-service-account-key.json.gpg
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
@@ -27,11 +33,14 @@ jobs:
           service_account_key: /tmp/gcp-key.json
           project_id: eventhive-dev
 
-      - name: Authenticate with GKE
-        run: gcloud container clusters get-credentials eventhive-dev --zone asia-south2-b
+      - name: Authenticate with Google Cloud using service account
+        run: |
+          gcloud auth activate-service-account --key-file /tmp/gcp-key.json
+          gcloud config set project eventhive-dev
+          gcloud container clusters get-credentials eventhive-dev --zone asia-south2-b
 
       - name: Install skaffold
-        run:
+        run: |
           curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
           sudo install skaffold /usr/local/bin/
 
