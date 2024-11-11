@@ -128,6 +128,14 @@ There are many ways to autherize any user into the application. All the approach
 
 This is a shared common library published on npmjs as a [package](https://www.npmjs.com/package/@eventhive/common). All the serices basically install this package and will use the reusable code that it holds.
 
+- Command to publish:
+
+  - `npm run pub`
+
+- Command to install the library:
+
+  - `npm install @eventhive/common`
+
 - Note: written in `Typescript`, published as `JS` using `del-cli`.
 
 - Tech Stack: `express`, `TypeScript`, `node-nats-streaming`, `JWT`, `cookie-session`
@@ -153,6 +161,11 @@ This service is the responsible service that performs the CRUD operations on Tic
 
 - Testing: `JEST`, `supertest`, `mongoose-in-memory-server`
 
+- Deployments:
+
+  - A pod running the express server.
+  - A pod running a mongo db to hold ticket data.
+
 - Routes
 
   - Get all tickets: Returns all the tickets by all the users that are not associated to a valid order. ( Avoid concurrent purchase).
@@ -176,3 +189,48 @@ This service is the responsible service that performs the CRUD operations on Tic
   - Listen
     - Order Created ( Ticket associated with order Id )
     - Order Cancelled ( Ticket freed from the order Id )
+
+## Orders Service
+
+This service is the responsible service that performs the CRUD operations on Orders Model. The service also stores a real time light-weight replica of tickets information. This way there is no direct dependency on the Tickets Service Model and Database to associate an order with a ticket.
+
+- Tech Stack: `Common`, `mongoose`, `TypeScript`, `Express`, `node-nats-streaming`, `mongoose-update-if-current`
+
+- Testing: `JEST`, `supertest`, `mongoose-in-memory-server`
+
+- Deployments:
+
+  - A pod running the express server.
+  - A pod running the mongo db storing Tickets and Orders Model
+
+- Routes:
+
+  - get all orders: Returns orders data for current user.
+  - get a order: Returns order details for given id only if it belongs to current signed in user.
+  - create order : Creates an order and stores it.
+  - delete order: We don't actually delete them but store them as cancelled orders.
+
+- Models
+
+  - Tickets:
+
+    - title
+    - price
+    - version
+    - isReserved()
+
+  - Order
+    - userid
+    - status
+    - expiresAt
+    - ticket: associated ticket document.
+
+- Events
+  - Publish
+    - Order Created ( Order details ).
+    - Order Cancelled ( Order details ).
+  - Listens
+    - Ticket Created ( Updates its replica database ).
+    - Ticket Updated ( Updates its replica database ).
+    - Expiration Complete ( If expired then order set to cancelled and Order Cancelled event triggered ).
+    - Payment Created ( Updates order status to complete ).
