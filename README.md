@@ -1,4 +1,5 @@
 # EventHive
+
 This is a small ticket selling and buying platform. It works on a micro-service based arcitecture that all combined provide a platform to sell tickets, place orders and make real-time payments for them.
 
 ## Application Features
@@ -11,7 +12,7 @@ This is a small ticket selling and buying platform. It works on a micro-service 
 
 ## Design overview
 
-To achieve this application requirement in a way that the application is easily scalable and less coupled on these features we followed a micro-service architecture based approach. 
+To achieve this application requirement in a way that the application is easily scalable and less coupled on these features we followed a micro-service architecture based approach.
 
 All in all we have implemented 5 different services exposed for each type of requirement.
 
@@ -40,7 +41,7 @@ Third Party library
 
 # Google Cloud k8s Context Setup
 
-In [this](https://github.com/Pranshu-Tripathi/EventHive/pull/1) pull request the GKE setup was established for working with cloud clusters for development phase as well. This way no local system setup of skaffold and k8s was needed. Locally only the kubernetes engine needs to be running and we can set the context to the gke based clusters. 
+In [this](https://github.com/Pranshu-Tripathi/EventHive/pull/1) pull request the GKE setup was established for working with cloud clusters for development phase as well. This way no local system setup of skaffold and k8s was needed. Locally only the kubernetes engine needs to be running and we can set the context to the gke based clusters.
 
 # Testing
 
@@ -59,8 +60,66 @@ We used github workflows to set up the CI / CD pipelines for this application. T
    - Authenticate the service account inside the project and get cluster credentials
    - Install skaffold.
    - Run the skaffold.yaml file that exists in the root directory for deployment in the GKE cluster.
-       - It reads the infrastructure/k8s directory and watches for any changes in there.
-       - It pulls the code and pushes it to us.gcr.io and builds images out of it in the cloud project.
-       - Then it deploys the images into the defined pods.
+     - It reads the infrastructure/k8s directory and watches for any changes in there.
+     - It pulls the code and pushes it to us.gcr.io and builds images out of it in the cloud project.
+     - Then it deploys the images into the defined pods.
 
+# Services and Common Module in detail
 
+Lets discuss the detailed implementation of each service in this application, their implementation challenges and some other possible implementation approaches.
+
+## Authenticaion
+
+There are many ways to autherize any user into the application. All the approaches eventaully boil down to these 2 types of approaches.
+
+- Rely on Auth service
+
+  - In this basically each service will either communicate to the auth service to check autherisation of a user.
+  - Other option could be the auth service will act as a gateway proxy for all the requests.
+  - Disadvantage:
+    - In the end both the approaches have the same downside that we add dependency of one service on all the other services. If Auth is down, then everything is down.
+
+- Independent Autherization Mechanism
+  - One approach is that the user will first autherize with the auth service and recieve a token. (JWT token with expiration)
+  - It then uses this token in all other service requests to autherise it self.
+  - All services will have this autherization mechanism code which we can easily de-duplicate in a shared common module.
+  - Disadvantage:
+    - If auth service bans a user, it will take some time to reflect into other services.
+    - If the application is not tolerable to this then the gateway approach is the go to option.
+    - Another solution to this could be to emit a user ban event in all ther services. Each service has a in memory cache like redis that holds the banned user details for a expiration window duration.
+    - This way the user won't be able to access other services in the window duration and after that his token will become invalid.
+
+### Implementation
+
+- Tech Stack : `TypeScript`, `Node`, `MongoDB`, `Express`, `JsonWebToken (JWT)`, `Cookie Session`
+- Testing: `JEST`, `supertest`, `mongo-in-memory-server`
+- Deployments:
+
+  - A pod running the typescript based express server
+  - A pod running the mongo database that holds a user data.
+
+- Routes
+
+  - signup
+    - validates the new user.
+    - stores in the DB
+    - generates a JWT token and stores in the cookie session of request.
+  - signin
+    - validates existing user.
+    - generates a JWT token and stores in the cookie session of request.
+  - currentuser
+    - Returns null if not autherised
+    - Returns user details
+  - signout
+    - clears the request token for the domain.
+
+- Password encryption
+
+  - stored password for user uses `crypto` library to encrypt and store it db.
+  - supplied and stored password hashes are compared and verified for auth.
+  - once encrypted the password cannot be visibly seen in the database.
+
+- Model
+  - User
+    - email id
+    - password
