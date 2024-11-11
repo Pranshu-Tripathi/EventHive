@@ -68,7 +68,7 @@ We used github workflows to set up the CI / CD pipelines for this application. T
 
 Lets discuss the detailed implementation of each service in this application, their implementation challenges and some other possible implementation approaches.
 
-## Authenticaion
+## Authenticaion Service
 
 There are many ways to autherize any user into the application. All the approaches eventaully boil down to these 2 types of approaches.
 
@@ -258,3 +258,43 @@ This is a worker service that has a cache database and only emits a expiration e
     - Expiration Complete : ( Order id that has expired )
   - Listen:
     - Order Created : ( Schedule a job with 1 min delay and order id as payload.)
+
+## Payment Service
+
+This service is responsible to make payments using the strip gateway for a given card details and store the charge details in its database. It also replicates a light weight orders database to reterive price and check validity of this payment.
+
+### Payment Flow
+
+This is a bit complicated flow. Our SSR Client will first use a checkout library to communicate to stripe and recieve a token for valid transaction. This token is sent to the payment service which inturn again communicates to stripe and performs an actual transaction. After that the transaction id of charge and the order are stored in the payment data model.
+
+- Tech Stack: `Express`, `TypeScript`, `JWT`, `cookie-session`, `mongoose`, `node-nats-streaming`, `mongoose-update-if-current`, `Stripe`
+
+- Testing: `JEST`, `supertest`
+
+- Deployments
+
+  - A pod running the express server
+  - A pod running mongo db that stores orders and payments data.
+
+- Routes
+
+  - Create new payment
+
+- Models
+
+  - Payments
+    - orderId
+    - stripeId
+  - Order
+    - id
+    - version
+    - userId
+    - status
+    - price
+
+- Events
+  - Publish:
+    - Payment Created ( send the payment details )
+  - Listen:
+    - Order Created ( updates replica model )
+    - Order Cancelled ( updates replica model )
