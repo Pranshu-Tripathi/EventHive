@@ -309,4 +309,62 @@ It has a build-client method that actually is used to understand which client is
 
 - Tech Stack: `Next.js`, `React`, `react-stripe-checkout`, `axios`
 
+- Deployments:
+
+  - A pod running Next based SSR service.
+
 - Stripe Checkout : It is bascially used with publishable key to retreive a token for this transactions. Then it sends this token to payment service that actually processes this transcation via stripe client.
+
+# NATs Streaming Server
+
+NATS Streaming Server is a high-performance, cloud-native messaging system designed specifically for distributed systems. It is used as event streaming system that streamlines different events using channels. Publishers publish to this channel and listeners subscribe to it. NATs takes care of again and again sending the event that it receives to the listener at some interval that is configurable, until it receives a acknowledgement.
+
+If listeners belong to a same service ( example we have 3 pods of orders service ) then they can join a queue group. That way NATs makes sure that only one will receive the event, hence there is no risk of duplicate processings. If one of the group member doesn't respond then the request is forwarded to next member of the queue group.
+
+NATs also has its own database that stores these events so they will sustain in memory until the resposible listeners have acknowledged it.
+
+## Concurrency Issues
+
+In any event bus the biggest issues that comes is of handling the orders in which events are sent and received. The difference in this order can have different outcome for the application.
+
+## Design Smell With Event Bus
+
+Any design that works with the event bus being responsible to publish a event to the responsible service about any crud operation on an entity is a bad design. Reason being it will always open endless possibilites on how these events are published and processed ( and will they be processed ?)
+
+Best solution to reduce concurrecy in microservices architecture is:
+
+- Any route requesting direct updation on any entity should be directly routed to the responsible service for that entity.
+- This service updates the database and publishes an event about this sucessful updation.
+- Other services then listen to this.
+
+This approach somewhat adds a streamlining to what events are to be processed and what not.
+
+## NATs couldn't publish event
+
+This is a edge case that is not implemented here but is totally possible when a event is not published by event bus but the database of responsible service is updated.
+The side effect would be that the other services working with replicas will go out of order.
+
+Possible solution:
+
+- Leverage Another databse Concept.
+
+  - Store events in a data base with a flag on was the event published.
+  - This way there is track on all the events and we keep on pushing the events to event bus until its published.
+
+- Transaction the CRUD and Event operation
+  - Make the CRUD on entity + Event Publishing a transaction.
+  - If any fails rollback the transaction.
+
+## Still possible Data Races
+
+Even after following the best designs the event bus still makes the application prone to data races conditions as the events published are still not expected to be the same order. If a single data is upated 5 times then the 5 events may not be sent in same order via the bus causing race condition in other services.
+
+## Optimistic Concurrency Control
+
+This mechanism makes the application free of data races on concurrent writes. It is based on conflict resolved updates. That is there is some mechanism of versioning (used here), time stamping on each data updation that can uniquely identify the next acceptable updates (no conflict). Conflicting events are rejected and are re sent after some time in hope that till then all other pending events will be processed.
+
+In this application incoming version number event is acknowledged to event bus if it is 1 + previous processed event. Otherwise the program early returns without acknowledgement. Then event bus will re publish the event hoping till then the other pending events are processed.
+
+### Implementation
+
+We deploy a nats streaming server pod. All other services use the node-nats-client to communicate to this server.
