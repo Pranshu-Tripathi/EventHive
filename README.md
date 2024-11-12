@@ -2,7 +2,7 @@
 
 This is a small ticket selling and buying platform. It works on a micro-service based arcitecture that all combined provide a platform to sell tickets, place orders and make real-time payments for them.
 
-## Application Features
+## Application Supported Features
 
 - Autherise a user to sell and buy tickets.
 - See all the tickets that are available to purchase.
