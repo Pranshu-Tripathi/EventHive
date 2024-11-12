@@ -1,14 +1,16 @@
 import "bootstrap/dist/css/bootstrap.css";
 import buildClient from "../api/build-client";
 import Header from "../components/header";
+import Footer from "../components/footer";
 
 const AppComponent = ({ Component, pageProps, currentUser }) => {
   return (
-    <div className="container">
+    <div className="d-flex flex-column min-vh-100">
       <Header currentUser={currentUser} />
-      <div className="container">
+      <div className="container flex-grow-1">
         <Component currentUser={currentUser} {...pageProps} />
       </div>
+      <Footer className="mt-auto" />
     </div>
   );
 };
