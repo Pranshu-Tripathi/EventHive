@@ -368,3 +368,17 @@ In this application incoming version number event is acknowledged to event bus i
 ### Implementation
 
 We deploy a nats streaming server pod. All other services use the node-nats-client to communicate to this server.
+
+### ScreenShots
+
+Landing Page
+<img width="1224" alt="image" src="https://github.com/user-attachments/assets/84aff8d3-af54-4fa0-8fd7-41ab0614bf76">
+
+My Orders
+<img width="1224" alt="image" src="https://github.com/user-attachments/assets/cc6078e2-84ca-4d5c-9ae8-c4348844eb3f">
+
+Sell Tickets
+<img width="1224" alt="image" src="https://github.com/user-attachments/assets/7599a7d1-1268-4233-a96d-2c5248b9fc6d">
+
+
+
